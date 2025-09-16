@@ -1,0 +1,180 @@
+-- If move to MIST and MOOSE.
+
+What is in the Mission Editor already.
+
+- MIST and MOOSE is allowed in all .lua's
+- All Airfield have been given a side. and all do have dynamic spawn on.
+
+Zones:
+
+- Airbases:
+    - "Z_FRONT_<Airfield>" = Covering the <Airfield> region.
+    - "Z_<Airfield>" = Covering the <Airfield>.
+    - "CTLD_<Airfield>" = For pickup zone.
+
+- TANK units:
+    - "TANK_<Airfield>_Spawn" = Were the Tank's spawns.
+    - "WP_<From>_to_<Destination>_<N>" = The waypoint zone for the tank's and artillery.
+    - "TANK_<Airfield>_Attack" = The Search and destroy area for the tank.
+
+- ARTILLERY units:
+    - "ARTILLERY_<Airfield>_Spawn" = Were the Artillery spawns.
+    - "WP_<From>_to_<Destination>_<N>" = The waypoint zone for the artillery and tank's.
+    . "ARTILLERY_<Airfield>_POE" = Fire at point zone for the artillery.
+
+- AAA units:
+    - "AAA_<Airfield>_Spawn" = Were the AAA spawns.
+    - "AAA_<Airfield>_Deploy" = Were the AAA deploys and get weapons free.
+
+- NAVAL units:
+    - "<From>_Spawn" = Were the Naval spawn.
+    - "<From>_wp_<N>" = Naval's waypoints.
+
+- AIR units:
+    - "<From/Airfield>_<Role>" = The destination for Aircraft depending on their role.
+
+
+Logic:
+
+- Airbases:
+    - They have side from mission start.
+    - TERRAIN.lua reads this and control's the "Frontline".
+    - Is the pickup location for units and cargo.
+
+- TANK units:
+    - Randomly spawn a convoy of Tank's. (4 units at least. 8 units max.)
+    - If out of ammo, the Tank will explode after an delay(5 minutes).
+    - Their objective:
+        1. Follow "WP_<From>_to_<Destination>_<N>"
+        2. when reach "TANK_<Airfield>_Attack" Start search and engage. Duration 1 hour.
+        3. When search and engage duration is done. It will drive to <Destination> Airfield and stay there until Airfield has been captured.
+        4. It will despawn a short delay(5 minutes.) after Airfield has been captured.
+    - Spawning Tank's will cost resources taken from <From> airfield.
+    - Mission complete and/or despawned tank's. Will refund half of resources:
+        - If tank has completed mission and airfield have changed side. The resources will go to that airfield (<Destination>).
+        - If tank despawn due to idle/no waypoint given. The resource will go back to (<From>) airfield.
+    - Tank's that have not been given waypoint twice. Will have a countdown before considered idle. (1 hour)
+    - Idle Tank's will despawn after 10 minutes counted as idle.
+    - max 24 unit cap on each side. This cap should always try to be reached.
+    - Respawn delay 1 hour.
+
+ARTILLERY Units:
+    - Randomly spawn a convoy of Artillery. (4 units max. 2 units at least.)
+    - If run out of ammo, it will call for rearm to TRANSPORT.lua. If TRANSPORT.lua has cooldown or "not enough supply" the Artillery will explode after 5 minutes. (TRANSPORT.lua has 5 minutes to respond with yes or no route.)
+    - Their objective:
+        - Follow "WP_<From>_to_<Destination>_<N>"
+        - When reach "ARTILLERY_<Airfield>_POE" Start Fire at point (zone with radius). Delay on every third shoot (5 minutes). 
+    - Spawning ARTILLERY will cost resources taken from <From> airfield.
+    - it's mission get's completed if Airfield (<Destination>) changes coalition.
+    - If mission is complete the ARTILLERY will despwan and it's used resources will be given to <Destination> Airfield.
+    - ARTILLERY will be counted as idle if not given at least two waypoints. Countdown for this is 1 hour.
+    - Idle ARTILLERY will despawn after 10 minutes counted as idle.
+    - max 16 units cap on each side. This cap should always try to be reached.
+    - Respawn delay 1 hour.
+
+- AAA units:
+    - Most important units, so have high priority to spawn.
+    - Spawn sequence will either spawn SAM convoy or single AAA unit. (SAM = 5 units.)
+    - Their objective:
+        - Spawn in as truck's on "AAA_<Airfield>_Spawn" (1 truck is 1 AAA unit, 5 trucks = 1 SAM site) 
+        - go to "AAA_<Airfield>_Deploy" zone
+        - Gets order to scatter for 10-20 seconds.
+        - Transform(spawn/despawns) to SAM/AAA unit.
+    - Spawning AAA/SAM will cost resources taken from <From> airfield.
+    - AAA truck counts as idle if not moved within 1 minute.
+    - Idle truck despawn and gives resource back to <From> airfield.
+    - Max 12 units cap on each Airfield (<From>).
+
+- NAVAL units:
+    - Randomly spawn a fleet of ship's. (minimum 3 ships, maximum 6 ships).
+    - Their objective:
+        - Spawn at "<From>_Spawn"
+        - patrol by following "<From>_wp_<N>"
+        - When reached last waypoint then restart from first waypoint.
+    - If run out of ammo, it will call for rearm to TRANSPORT.lua. If TRANSPORT.lua has cooldown or "not enough supply" the ship will explode after 5 minutes. (TRANSPORT.lua has 5 minutes to respond with yes or no route.)
+    - max 12 ships cap on each side.
+    - Spawning ship will cost resources taken from <From> airfield.
+
+- Air units:
+    - Randomly spawn with different roles. (minimum 2 units or max 4 units.)
+    - Their objective:
+        - Spawn at <From> Airfield. (Parking hot, if not big plane like AWACS, TANKER, Bomber).
+        - Get payload from LOADOUT.lua and PYLON.lua
+        - Fly to "<From>_<Role>" zone.
+        - Does it's mission (patrol, ground attack, bomb at units/area/zone)
+        - if Patrol then patrol for 45 minutes or till empty fuel.
+        - RTB
+    - Spawning Air will cost resources from <From> airfield.
+    - if no movement or waypoint is given the plane will be considered idle.
+    - Idle or RTB(landed) planes, despawns after 5 minutes and resources are given back to airfield.
+    - Roles:
+        - CAS
+        - CAP
+        - STRIKE
+        - INT (intercept)
+        - BOMB
+        - AWACS
+        - TANKER
+        - TRANSPORT (Helicopters or transport planes only.)
+    - max 24 units on each side.
+
+- TRANSPORT.lua :
+    - Will read STATE.lua and give resupply missions/orders.
+    - Spawns:
+        - Truck if destination is closer than 200km distance.
+        - Helicopter if destination is more than 200km distance.
+    - Truck spawns 10 truck's and 1 truck carry 10 MP, 20 AMMO, 100 fuel.
+    - max 3 transport missions at a time on each sides.
+    - Configurable in CONFIG.lua
+
+- FERRY.lua :
+    - looks for group inside ferry zones ("FERRY_<Name>_A/B") for bot A and B
+    - If ground group are inside zone then teleport group with 5 minutes time.
+    - Ground group inside a zone must wait for 30 seconds before getting teleported.
+    - Ferry zones has cooldown of 5 minutes.
+    - Ferry can carry 1 group of units at a time.
+    - Ground group resumes its waypoint after been teleported.
+    - Configurable in CONFIG.lua
+
+- AIR.lua , NAVAL.lua , GROUND.lua is only for units purpose and :
+    - UNITS.lua for unit catalog
+    - WEAPONS.lua for weapon catalog
+    - PYLONS.lua for payload catalog
+    - LOADOUT.lua for reading PYLONS.lua and apply to AIR.lua.
+    - Configurable in CONFIG.lua
+
+- STATE.lua :
+    - For economy logic.
+    - Reads from TERRAIN.lua
+    - Gives orders to TRANSPORT.lua
+    - Resources:
+        - Manpower (mp)
+        - Ammo
+        - Fuel
+    - All airfields get income every 120 seconds.
+    - Airfield hub's get more every 120 seconds.
+    - Configurable in CONFIG.lua
+
+- TERRAIN.lua :
+    - Gets all Airfields coalition from mission.
+    - Has "Z_FRONT_<Airfield>" zones for all Airfields.
+    - reads frontline from neighbors table.
+    - Tell all .lua's were the frontline is and what airfields are active due to neighbors.
+    - No active frontline area's do not spawn units!
+
+- MARK.lua :
+    - If no better solution with MIST or MOOSE . We still will use markers.
+    - Reads from STATE.lua and show everyone how much resources each airfield has.
+    - synchronizes every 60 seconds.
+
+- OPERATIONINIT.lua :
+    - initialize all .lua's without MIST and MOOSE.
+
+- CONFIG.lua :
+    - Configurable for all .lua's.
+    - More we can config the better.
+
+Mission Editor:
+    - Should try to have only Trigger zones.
+    - If need templates for MOOSE or MIST or any reason, then do not place them on an Airfield:
+        - Reason: Airfields cant change coalition if there is late activation unit present.
