@@ -24,7 +24,7 @@ Zones:
 
 - AAA units:
     - "AAA_<Airfield>_Spawn" = Were the AAA spawns.
-    - "AAA_<Airfield>_Deploy" = Were the AAA deploys and get weapons free.
+    - "AAA_Deploy_<Airfield>" = Were the AAA deploys and get weapons free.
 
 - NAVAL units:
     - "<From>_Spawn" = Were the Naval spawn.
@@ -77,7 +77,7 @@ ARTILLERY Units:
     - Spawn sequence will either spawn SAM convoy or single AAA unit. (SAM = 5 units.)
     - Their objective:
         - Spawn in as truck's on "AAA_<Airfield>_Spawn" (1 truck is 1 AAA unit, 5 trucks = 1 SAM site) 
-        - go to "AAA_<Airfield>_Deploy" zone
+        - go to "AAA_Deploy_<Airfield>" zone
         - Gets order to scatter for 10-20 seconds.
         - Transform(spawn/despawns) to SAM/AAA unit.
     - Spawning AAA/SAM will cost resources taken from <From> airfield.
@@ -178,3 +178,15 @@ Mission Editor:
     - Should try to have only Trigger zones.
     - If need templates for MOOSE or MIST or any reason, then do not place them on an Airfield:
         - Reason: Airfields cant change coalition if there is late activation unit present.
+
+
+Sites:
+
+- AAA Deploy coordinates:
+    -
+
+- TANK Attack coordinates:
+    -
+
+- ARTILLERY POE coordinates:
+    -
