@@ -1,0 +1,536 @@
+Purpose for this mission:
+- Russia/USSR have invaded NATO and they have captured territory all the way into Bodø(Bodo) Norway, Kallax(Sweden) and Kemi Tornio(Finland). The year is 1981.
+- Blue team mission:
+    Try capture back every territory/Airfields that Russia/USSR has captured and advance to Russia. Mission goal: Take over Severomorsk-1, Severomorsk-3 and Poduzhemye airfields.
+- Red team mission:
+    Mission goal: Try capture Bodø(Bodo), Kallax and Kemi Tornio airfields.
+- Both sides/coalitions have AI on their side to help them.
+- AI purpose:
+    - AAA on friendly Airbases defending owned territory.
+    - TANKS and ARTILLERY attacking enemy territory/Airfields.
+    - Airplanes with different roles to play. CAS,AWACS,TANKER,CAP,INS,STRIKE,TRANSPORT.
+    - NAVAL to cover the coast's.
+
+Coalitions:
+    - BLUE:
+        - USA
+        - Norway
+        - Sweden
+        - Finland
+    - RED:
+        - Russia
+        - USSR
+
+Economy purpose:
+- if Manpower, Ammo or Fuel runs dry on an Airfield then nothing will be able to spawn there.
+
+Key goal:
+- Take out many targets and make Airfields run dry of resources or destroy all ground units around the Airfield. then drop land units to take it over.
+- Defend the Armor that is attacking enemy airfield for it to capture the airfield.
+- Help transport Manpower, Ammo, Fuel, to owned Airfield so it does not run dry.
+
+AIRFIELD:
+- Bodo is a hub and start with coalition blue.
+- Poduzhemye is a hub and start with coalition red.
+- Severomorsk-3, Murmansk International, Kallax, Kemi Tornio, Is a hub but start with coalition neutral.
+- Airfields not mentioned as hub get minor income and start neutral.
+- Hub Airfield's get resources pr 120 tick: (adjustable in CONFIG.lua)
+    - 10 manpower
+    - 20 ammo
+    - 100 fuel
+- minor airfields get resources pr 120 tick:
+    - 3 manpower
+    - 8 ammo
+    - 40 fuel
+- Each hub airfield start with:
+    - 500 manpower
+    - 1000 ammo
+    - 10000 fuel
+- Each minor airfield start with:
+    - 100 manpower
+    - 300 ammo
+    - 3000 fuel
+
+FILES:
+
+GROUND.lua :
+- TANK that will Spawn on Trigger zone "TANK_<From>_Spawn", follow "WP_<From>_to_<Destination>_<N>" Trigger zone's, Search and Engage at last Trigger zone "TANK_<Destination>_ATTACK" for 1 hour, Moves to "<Destination>"(Airfield) and stays there until Airfield changes coalition then despawn.
+- ARTILLERY that will Spawn on Trigger zone "ARTILLERY_<From>_Spawn", follow "WP_<From>_to_<Destination>_<N>" Trigger zone's, Fire at Point/Zone at last Trigger zone "ARTILLERY_<Destination>_ATTACK" until empty ammo, Moves to "<Destination>"(Airfield) and stays there until Airfield changes coalition then despawn.
+- AAA that will spawn on Trigger zone "AAA_<From>_Spawn", Get by script "WP" off road -> "WP" on road at same spawn zone. Then get by script "WP" on road in Trigger zone "AAA_<From>_DEPLOY" -> "WP" off road at same deploy zone. Then scatters for 10-20 seconds and transform to AAA site.
+- AAA spawns as truck's and transform to AAA when reached destination.
+- All units will have Weapon free and ROE Red Without ARTILLERY. ARTILLERY Will not change danger settings until reached "ARTILLERY_<Destination>_ATTACK" other words. ARTILLERY will not engage before fire on point order.
+- The owner of Airfield will decide coalition for the units spawning.
+- Units will only spawn at active Airfields by reading from TERRAIN.lua.
+- Units will only spawn if Airfield has economy for it. By STATE.lua.
+- Always max unit cap is 5 groups at a time. if 1 group dies another group will spawn. Always try to keep cap.
+- Group lost more than 70% of units will destroy on short time (5 minutes). After burning for 5 minutes it will despawn.
+- One Group will spawn at a time, with 20 minutes delay. First AAA, Second TANK and third ARTILLERY.
+- If AAA has 20% Ammo left. Truck with ammo will spawn at "<From>"(Airfield) then drive to AAA within 50 feet/meter it will mark as complete and despawn within 30 seconds. If destroyed on its way it fails to deliver and next truck will have 30 minutes delay to spawn. This will be TRANSPORT.lua's job.
+- If Units must go trough Ferry points. FERRY.lua will teleport them and they should continue on their task.
+- it doesn’t hard-code a 5-group global cap yet. Let’s add that as an explicit requirement so we don’t forget the cap logic/timers.
+
+AIR.lua :
+- Roles: CAP, CAS, AWACS, TANKER, TRANSPORT, STRIKE, BOMB, RECON,
+- Gets role payload from LOADOUT.lua
+- Planes spawn in "parking-hot" without AWACS, TANKER and Helicopter's they spawn "parking-cold" on Airfield.
+- Reads from TERRAIN.lua and only spawn actively on active Airfields (Frontline's).
+- STATE.lua economy logic.
+- Editable in CONFIG.lua
+- Max air group cap. Editable in CONFIG.lua.
+- 1 AWACS, 1 TANKER, for each frontline airfields. Does not include in max air group cap.
+- Air groups amount is Editable in CONFIG.lua
+- Patrol time and mission time pr group is Editable in CONFIG.lua
+- If dead, landed or idle. The group/unit despawn and delay before respawn.
+- Timeouts/delays pr spawn/respawn is Editable in CONFIG.lua
+- If Airfield is taken. Then all groups RTB and respawns with delay on new Airfield etc new Frontline.
+
+NAVAL.lua :
+- startup fleets, catastrophic loss settings.
+- CONFIG has useful naval tuning (cooldowns, loss thresholds, optional startup fleets).
+- Spawn Naval on Trigger zone. Weapons free/red and patrol from first waypoint til last, then restart its waypoint again to keep going constantly.
+- If destroyed it respawn after 2 hour delay.
+
+PICKUP.lua
+- Players may pickup units at friendly airfield's with helicopter.
+- Can drop off units anywhere.
+- Units that get dropped off inside enemy Airfield zone, will automatically get order to move onto airfield with weapons free/red. (Zone trigger name "Z_<airfield>")
+- Units that get dropped off outside Airfield zone, will be "driveable" and if game does not support "driveable" for unit. Game master's can give them orders anyways.
+- Idle units (not fire'ing or moving), despawns after 30 minutes of idleness.
+- Idle countdown start if unit is idle over 10 minutes.
+- Helicopter's can pickup 4 squad's(Groups) max and/or 1 Vehicle.
+- Helicopter types:
+    ["UH-1H"] Blue team. Can pick up max 2 squads.
+    ["CH-47D"] Blue team. Can pick up 2 squads and 1 Vehicle. If no vehicle then 4 squads.
+    ["CH-47Fbl1"] Blue team. Can pick up 2 squads and 1 Vehicle. If no vehicle then 4 squads.
+    ["Mi-8MT"] Red team. Can pick up 2 squads and 1 Vehicle. If no vehicle then 4 squads.
+    ["Mi-24P"] Red team. Can pick up max 2 squads.
+- Units available for pickup:
+    Blue team Vehicle:
+        "M-113", "M-60", "L118_Unit",
+    Red team Vehicle:
+        "BRDM-2", "BMP-2", "M2A1_105",
+- 1 squad(1 group):
+    Blue team:
+        4x "Soldier M4",
+        1x ""Soldier M249",
+    Red team:
+        4x "Paratrooper AKS-74",
+        1x "Paratrooper RPG-16",
+
+
+FERRY.lua :
+For now teleports group/units from A to B or B to A.
+Later on, there should be a Ferry unit sailing from A to B were ground group/units need to wait till ferry is at A or B before despawn and when ferry reach opposite point they will spawn. 
+If ferry gets destroyed while carry units/groups. The group get marked as killed and ferry will respawn after 1 hour delay.
+- note that multi-hop ferry chains already exist. I think.
+- Add a one-liner in ToDo about the chain naming so mission-zone naming stays consistent. Yes it needs it.
+
+LOADOUT.lua :
+- Read from PYLONS.lua
+- Gives information to AIR.lua on what payload they get.
+- Decide which template planes use to what role it gets.
+
+PYLONS.lua :
+- List for LOADOUT.lua for payload to AIR.lua.
+
+WEAPONS.lua :
+- Catalog of weapon cost (Ammo).
+- For STATE.lua to read.
+
+UNITS.lua :
+- Catalog of all units being used in the mission.
+- Should give information to corresponding .lua's .
+- For STATE.lua to read.
+
+RESTRICT.lua :
+Action mode setting.
+- Clients are only allowed to fly/use units for their coalition sides.
+- Example: If client pick RED, MiG-21, but are on blue coalition then, Warn them that it is not allowed and despawn.
+
+MARK.lua :
+- planned overlay for economic view over airbase's/territory. Shown for all not just side.
+- Reads from TERRAIN.lua and STATE.lua
+
+TRANSPORT.lua :
+- Reads from STATE.lua
+- When Airfield is low on resources TRANSPORT.lua will organize transport to refill.
+- Airfield with more than 50% max resources will be available to deploy transport.
+- TRANSPORT.lua will deploy/spawn truck if required Airfield is within xxx(can change in CONFIG.lua) distance. if longer it will spawn helicopter instead.
+- Truck will mark as delivered when its within 100ft/m from destination after 2 minutes timeout and then despawn. It will fail if 70% of the truck convoy gets killed. Then they will explode and burn for 5 minutes and then despawn.
+- Helicopter will spawn parking-cold. Takeoff from airfield, fly to destination airfield, land at airfield, then RTB, shut down engines, despawn after 5 minutes, marks as completed.
+- Convoy count:
+    - 10 trucks
+    - 2 helicopters
+- If truck or helicopter fail to deliver because of death. TRANSPORT.lua will re-launch after 1 hour delay.
+- Radius values are changeable in CONFIG.lua .
+- “deliver within 100 ft/m and after 2 minutes,” “2 helicopters,” etc. The actual transport module uses configurable radii/timers (e.g., 800 m trucks, 350 m helos, cooldowns, 2-hour failsafe, helo RTB and land/shutdown). Add the exact numbers you want so we sync code constants with the spec. This should be editable in the CONFIG.lua .
+- adds to airbase 10 mp, 20 ammo, 100 fuel, pr Truck.
+- adds to airbase 30 mp, 50 ammo, 500 fuel, pr Helicopter.
+- delivery radius:
+    - Truck 200 meter. Delivery delay 10 minutes.
+    - Helicopter lands on airfield. (helicopter lands with landing waypoint than takeoff for RTB.) Delivery delay 10 minutes.
+- default cooldowns:
+    - If failed then delay 30 minutes before next delivery start.
+    - If success then delay 1 hour before next delivery start.
+
+OPERATIONINIT.lua
+- The initializer, will init all .lua's
+
+CONFIG.lua
+- Will be the script we can configure all other .lua with.
+- Controls debug toggles.
+- debug toggles, hub/base economy rates, country mappings included.
+
+SIDEMISSIONS.lua :
+- Player will have Sidemissions option in F-10 menu.
+- Available sidemissions is:
+    - CAS : Fly to point near Enemy units randomly picked by the script.
+    - CAP : Fly to point and patrol/orbit for 20 minutes. Will be in Trigger zone CAS,CAP etc but not HOTSPOT.
+    - INT : Get coordinates of closest enemy aircraft/helicopter but can kill any when reached coordinates.
+    - TRANSPORT : Get mission fly manpower, ammo or Fuel to another Airfield/FOB.
+- Don't give player sidemission if its too far away. 1000nm(adjustable in the CONFIG.lua) max.
+- Player should get score if complete a sidemission.
+
+TERRAIN.lua
+- Collect data on Airfield ownership
+- tell all relevant ****.lua who has ownership.
+- tell all relevant ****.lua were the frontline is.
+
+STATE.lua
+Works I think.
+- Resources :
+    - manpower
+    - ammo
+    - fuel
+- Manpower is how many people it takes to run a Airplane, TANK, ARTILLERY, Helicopter, AAA. Airplane with only 1 pilot will still count as 10 manpower. Airplane with 2 pilots will count as 15 manpower. Airplane with 3 pilots or more count as 20 manpower.
+- Ammo is counted by unit. If one rocket-pod with 32x rockets it counts half (= 16 ammo). If airplane take 1 missile, it cost 1 ammo. Ground units with xx rounds will cost half of it. (If Artillery tank has 50 HE shell's it will cost 25 ammo to spawn.)
+- Fuel is counted by:
+    - Airplanes amount of fuel they are carrying will cost pr units. 1 gallon is 1 fuel.
+    - Ground units will cost 100 fuel as long as it has an engine. (Infantry does not count.)
+- manpower-per-crew rule is planned but missing in code.
+- our economy helpers currently consume simple {mp, ammo, fuel} without translating crew → manpower. Flag this as “to implement in STATE.”
+- Resource cap for all airfields:
+    - 3000 manpower
+    - 10000 ammo
+    - 100000 fuel
+
+
+MOOSE/MIST plan (how I’ll wire it)
+
+MOOSE core:
+One WAREHOUSE object per airfield; it mirrors STATE.lua (mp/ammo/fuel) and gates spawns.
+AI CAP/CAS/STRIKE via MOOSE patrol/AI_A2A/A2G tasks, constrained to your CAP/HOTSPOT zones, with despawn/respawn tied to economy + front line.
+Transport: trucks (ground routes) + helos (must land, RTB, shutdown) as specified.
+MIST (optional): for convenience utilities (group clone/teleport wrappers, route builds) if DCS-native APIs get cranky; otherwise we can stay pure MOOSE.
+
+
+
+DO SCRIPT FILE load order (top→bottom)
+MIST.lua (only if we use it)
+MOOSE.lua
+CONFIG.lua (holds all tunables + country maps)
+TERRAIN.lua (ownership & active/frontline helpers)
+STATE.lua (economy + MOOSE warehouse bridge)
+UNITS.lua, WEAPONS.lua, PYLONS.lua, LOADOUT.lua
+RESTRICT.lua (policy)
+MARK.lua (economy overlays)
+FERRY.lua, TRANSPORT.lua, GROUND.lua, AIR.lua, NAVAL.lua, PICKUP.lua, SIDEMISSIONS.lua
+OPERATIONINIT.lua (last; starts timers, hooks capture → retask/markers)
+Bottom line: we’re good to go. If you want me to choose defaults for the few items above, I’ll bake them straight into CONFIG.lua and proceed with the rebuild in MOOSE style.
+
+
+
+
+UNITS:
+
+AIRPLANE/HELICOPTER:
+
+["A-10A"]        
+["AJS37"]        
+["AV8BNA"]       
+["F-14A-135-GR"] 
+["F-14B"]        
+["F-15C"]        
+["F-16A"]        
+["F-5E-3"]       
+["F-86F Sabre"]  
+["F4U-1D"]       
+["FA-18C_hornet"]
+["F-4E-45MC"]    
+["M-2000C"]      
+["MB-339A"]      
+["L-39C"]        
+["MiG-19P"]      
+["MiG-21Bis"]    
+["MiG-23MLA"]    
+["MiG-23MLD"]    
+["MiG-29A"]      
+["MiG-29G"]      
+["MiG-31"]       
+["Su-25T"]       
+["Su-27"]        
+["B-52H"]        
+["KC-135"]       
+["KC-135MPRS"]   
+["E-3A"]         
+["E-2C"]         
+["C-130"]        
+["Tu-22M3"]      
+["IL-78M"]       
+["A-50"]         
+["An-30M"]       
+["IL-76MD"]      
+["UH-1H"]        
+["CH-47D"]       
+["CH-47Fbl1"]    
+["Mi-8MT"]       
+["Mi-24P"]       
+
+GROUND/UNITS:
+
+["FPS-117 ECS"]             
+["FPS-117"]                 
+["FPS-117 Dome"]            
+["Soldier stinger"]         
+["Stinger comm"]            
+["Hawk ln"]                 
+["Hawk pcp"]                
+["Hawk sr"]                 
+["Hawk tr"]                 
+["Hawk cwar"]               
+["Patriot cp"]              
+["Roland ADS"]              
+["Roland Radar"]            
+["Vulcan"]                  
+["M48 Chaparral"]           
+["SON_9"]                   
+["KS-19"]                   
+["S-60_Type59_Artillery"]   
+["ZU-23 Emplacement Closed"]
+["ZU-23 Emplacement"]       
+["Ural-375 ZU-23"]          
+["generator_5i57"]          
+["SA-18 Igla manpad"]       
+["SA-18 Igla comm"]         
+["Dog Ear radar"]           
+["S-300PS 64H6E sr"]        
+["S-300PS 54K6 cp"]         
+["S-300PS 40B6MD sr"]       
+["S-300PS 40B6M tr"]        
+["S-300PS 5H63C 30H6_tr"]   
+["S-300PS 5P85C ln"]        
+["S-300PS 5P85D ln"]        
+["S-300PS 40B6MD sr_19J6"]  
+["SNR_75V"]                 
+["S_75M_Volhov"]            
+["p-19 s-125 sr"]           
+["5p73 s-125 ln"]           
+["snr s-125 tr"]            
+["S-200_Launcher"]          
+["RPC_5N62V"]               
+["RLS_19J6"]                
+["Kub 2P25 ln"]             
+["Kub 1S91 str"]            
+["Osa 9A33 ln"]             
+["Strela-1 9P31"]           
+["ZSU-23-4 Shilka"]         
+["ZSU_57_2"]                
+["AAV7"]                    
+["M-113"]                   
+["M-60"]                    
+["BTR-D"]                   
+["MTLB"]                    
+["BMD-1"]                   
+["BMP-1"]                   
+["BMP-2"]                   
+["PT-76"]                   
+["T-55"]                    
+["BRDM-2"]                  
+["L118_Unit"]               
+["M-109"]                   
+["M2A1_105"]                
+["Grad_URAL"]               
+["SAU 2-C9"]                
+["SAU Akatsia"]             
+["Soldier M4"]              
+["Soldier M249"]            
+["Paratrooper AKS-74"]      
+["Paratrooper RPG-16"]      
+["M 818"]                   
+["ATMZ-5"]                  
+["Ural-4320T"]              
+
+Trigger zones:
+
+FERRY Zones.
+Between Bodo and Evenes:
+
+"FERRY_Bodo_A" - "FERRY_Bodo_B"
+"FERRY_BodoN_A" - "FERRY_BodoN_B"
+"FERRY_EvenesS_A" - "FERRY_EvenesS_B"
+"FERRY_Evenes_A" - "FERRY_Evenes_B"
+
+Between Evenes and Andoya:
+
+"FERRY_EvenesN_A" - "FERRY_EvenesN_B"
+
+Between Evenes and Kiruna:
+
+"FERRY_EvenesE_A" - "FERRY_EvenesE_B"
+"FERRY_Kiruna_A" - "FERRY_Kiruna_B"
+
+Between Andoya and Bardufoss:
+
+"FERRY_Andoya_A" - "FERRY_Andoya_B"
+
+Between Bardufoss and Alta:
+
+"FERRY_Bardufoss_A" - "FERRY_Bardufoss_B"
+"FERRY_BardufossN_A" - "FERRY_BardufossN_B"
+"FERRY_AltaS_A" - "FERRY_AltaS_B"
+
+Between Bardufoss and Kiruna:
+
+"FERRY_EvenesE_A" - "FERRY_EvenesE_B"
+"FERRY_Kiruna_A" - "FERRY_Kiruna_B"
+
+FRONTLINE Zones:
+
+"Z_FRONT_Bodo",                  
+"Z_FRONT_Kallax",                
+"Z_FRONT_Kemi Tornio",           
+"Z_FRONT_Evenes",                
+"Z_FRONT_Andoya",                
+"Z_FRONT_Kiruna",                
+"Z_FRONT_Vidsel",                
+"Z_FRONT_Kuusamo",               
+"Z_FRONT_Poduzhemye",            
+"Z_FRONT_Afrikanda",             
+"Z_FRONT_Olenya",                
+"Z_FRONT_Severomorsk-1",         
+"Z_FRONT_Severomorsk-3",         
+"Z_FRONT_Murmansk International",
+"Z_FRONT_Kilpyavr",              
+"Z_FRONT_Koshka Yavr",           
+"Z_FRONT_Ivalo",                 
+"Z_FRONT_Kittila",               
+"Z_FRONT_Alta",                  
+"Z_FRONT_Banak",                 
+"Z_FRONT_Vuojarvi",              
+"Z_FRONT_Bardufoss",             
+"Z_FRONT_Jokkmokk",              
+"Z_FRONT_Rovaniemi",             
+"Z_FRONT_Alakurtti",             
+"Z_FRONT_Monchegorsk",           
+"Z_FRONT_Luostari Pechenga",     
+"Z_FRONT_Kirkenes",              
+"Z_FRONT_Sodankyla",             
+"Z_FRONT_Enontekio",             
+"Z_FRONT_Kalevala",              
+"Z_FRONT_Hosio",                 
+
+Airwings Zones:
+"BODO_CAP",
+"BODO_STRIKE_HOTSPOT",
+"BODO_AWS",
+"BODO_TANKER",
+"EVENES_STRIKE_HOTSPOT",
+"EVENES_CAP",
+"EVENES_AWS",
+"EVENES_TANKER",
+"KALLAX_AWS",
+"KALLAX_TANKER",
+"KEMITORNIO_AWS",
+"KEMITORNIO_TANKER",
+"ANDOYA_AWS",
+"ANDOYA_TANKER",
+"KIRUNA_AWS",
+"KIRUNA_TANKER",
+"VIDSEL_AWS",
+"VIDSEL_TANKER",
+"KUUSAMO_AWS",
+"KUUSAMO_TANKER",
+"PODUZHEMYE_AWS",
+"PODUZHEMYE_TANKER",
+"AFRIKANDA_AWS",
+"AFRIKANDA_TANKER",
+"OLENYA_AWS",
+"OLENYA_TANKER",
+"SEVEROMORSK-1_AWS",
+"SEVEROMORSK-1_TANKER",
+"SEVEROMORSK-3_AWS",
+"SEVEROMORSK-3_TANKER",
+"MURMANSK_AWS",
+"MURMANSK_TANKER",
+"KILPYAVR_AWS",
+"KILPYAVR_TANKER",
+"KOSHKA_AWS",
+"KOSHKA_TANKER",
+"IVALO_AWS",
+"IVALO_TANKER",
+"KITTILA_AWS",
+"KITTILA_TANKER",
+"ALTA_AWS",
+"ALTA_TANKER",
+"BANAK_AWS",
+"BANAK_TANKER",
+"VUOJARVI_AWS",
+"VUOJARVI_TANKER",
+"BARDUFOSS_AWS",
+"BARDUFOSS_TANKER",
+"JOKKMOKK_AWS",
+"JOKKMOKK_TANKER",
+"ROVANIEMI_AWS",
+"ROVANIEMI_TANKER",
+"ALAKURTTI_AWS",
+"ALAKURTTI_TANKER",
+"MONCHEGORSK_AWS",
+"MONCHEGORSK_TANKER",
+"LUOSTARI_AWS",
+"LUOSTARI_TANKER",
+"KIRKENES_AWS",
+"KIRKENES_TANKER",
+"SODANKYLA_AWS",
+"SODANKYLA_TANKER",
+"ENONTEKIO_AWS",
+"ENONTEKIO_TANKER",
+"KALEVALA_AWS",
+"KALEVALA_TANKER",
+"HOSIO_AWS",
+"HOSIO_TANKER",
+
+AIRFIELDS KOLA MAP:
+
+["Bodo"]                  
+["Kallax"]                
+["Kemi Tornio"]           
+["Evenes"]                
+["Andoya"]                
+["Kiruna"]                
+["Vidsel"]                
+["Kuusamo"]               
+["Poduzhemye"]            
+["Afrikanda"]             
+["Olenya"]                
+["Severomorsk-1"]         
+["Severomorsk-3"]         
+["Murmansk International"]
+["Kilpyavr"]              
+["Koshka Yavr"]           
+["Ivalo"]                 
+["Kittila"]               
+["Alta"]                  
+["Banak"]                 
+["Vuojarvi"]              
+["Bardufoss"]             
+["Jokkmokk"]              
+["Rovaniemi"]             
+["Alakurtti"]             
+["Monchegorsk"]           
+["Luostari Pechenga"]     
+["Kirkenes"]              
+["Sodankyla"]             
+["Enontekio"]             
+["Kalevala"]              
+["Hosio"]                 
+
