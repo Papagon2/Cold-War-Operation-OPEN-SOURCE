@@ -1,7 +1,7 @@
 DCS - World mission!
 Done with the cooperation with chatGPT.
 No MIST or MOOSE is used yet. But been told is better to use them. feel free to particitate.
-Please read Usage.txt!
+Please read ToDo.txt and Usage.txt!
 
 The mission is not Finished. But should be so many opertuneties to complete it.
 
