@@ -10,3 +10,14 @@ Right now GROUND.lua is the main issue. Ground units have no waypoint or correct
 
 
 Usage txt: https://github.com/Papagon2/Cold-War-Operation-OPEN-SOURCE/blob/main/Mist%26moose/Usage.txt
+
+
+MAIN GOAL:
+
+- Make it easy for setting up mission on any maps.
+Means:
+  The only thing you need to do:
+    - Place Trigger Zones in the ME.
+    - Write down all the Airfields you want to use in the mission.
+    - Load triggers "DO SCRIPT FILE" in correct order.
+    - PLAY.
