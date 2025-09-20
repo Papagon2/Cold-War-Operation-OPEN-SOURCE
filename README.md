@@ -3,7 +3,7 @@ Done with the cooperation with chatGPT.
 No MIST or MOOSE is used yet. But been told is better to use them. feel free to particitate.
 Please read ToDo.txt and Usage.txt!
 
-The mission is not Finished. But should be so many opertuneties to complete it.
+THE MISSION IS NOT FINISHED!. But should be so many opertuneties to complete it.
 
 
 Right now GROUND.lua is the main issue. Ground units have no waypoint or correct waypoint.
