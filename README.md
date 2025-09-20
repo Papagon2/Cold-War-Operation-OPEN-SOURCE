@@ -6,9 +6,6 @@ Please read ToDo.txt and Usage.txt!
 THE MISSION IS NOT FINISHED!. But should be so many opertuneties to complete it.
 
 
-Right now GROUND.lua is the main issue. Ground units have no waypoint or correct waypoint.
-
-
 Usage txt: https://github.com/Papagon2/Cold-War-Operation-OPEN-SOURCE/blob/main/Mist%26moose/Usage.txt
 
 
